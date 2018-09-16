@@ -1,5 +1,5 @@
-<canvas id= "ctx" width="800px" height="800px" style="border:1px solid #000000;"></canvas>
-<div id= "chat-text" style="width:800px;height:100px;overflow-y:scroll">
+<canvas id= "ctx" width="500px" height="500px" style="border:1px solid #000000;"></canvas>
+<div id= "chat-text" style="width:500px;height:100px;overflow-y:scroll">
 	</div>
 	<form id="chat-form">
 		<input id="chat-input" type="text" style:"width:500px">
@@ -11,8 +11,8 @@
 	let chatForm = document.getElementById("chat-form");
 	let chatInput = document.getElementById("chat-input");
 	let socket = io();
-	const WIDTH = 800;
-	const HEIGHT = 800;
+	const WIDTH = 500;
+	const HEIGHT = 500;
   ctx.font = '30px Arial';
   let Player = function(initPack){
   	let self = {};
@@ -73,7 +73,7 @@ let img = {};
   	}
   }
   let drawScore = function(){
-  	ctx.fillStyle = 'white';
+  	ctx.fillStyle = 'black';
   	if(selfId){
   		 ctx.fillText(Player.list[selfId].score+"",0, 30);
   	}
