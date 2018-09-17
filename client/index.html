@@ -1,19 +1,35 @@
-<canvas id= "ctx" width="500px" height="500px" style="border:1px solid #000000;"></canvas>
-<div id= "chat-text" style="width:500px;height:100px;overflow-y:scroll">
+<body style="margin:0px;overflow:hidden">
+<canvas id= "canvas" width="500px" height="500px" style="border:1px solid #000000;"></canvas>
+<div id= "chat-text" style="height: 20px; overflow-y:scroll">
 	</div>
-	<form id="chat-form">
-		<input id="chat-input" type="text" style:"width:500px">
+	<form id="chat-form" >
+		<input id="chat-input" type="text" >
 	</form>
+</body>
 <script src="/socket.io/socket.io.js"></script>
 <script>
-	let ctx = document.getElementById("ctx").getContext("2d");
+	let canvas = document.getElementById("canvas")
+	let ctx = canvas.getContext('2d');
 	let chatText = document.getElementById("chat-text");
 	let chatForm = document.getElementById("chat-form");
 	let chatInput = document.getElementById("chat-input");
 	let socket = io();
-	const WIDTH = 500;
-	const HEIGHT = 500;
-  ctx.font = '30px Arial';
+	let WIDTH = 500;
+	let HEIGHT = 500;
+  
+  let resizeCanvas = function(){
+  	WIDTH = window.innerWidth-4;
+  	HEIGHT = window.innerHeight-4;
+  	canvas.width = WIDTH;
+  	canvas.height = HEIGHT-20;
+  	chatInput.setAttribute("style", "width:" + WIDTH+"px");
+  	chatForm.setAttribute("style", "width:" + WIDTH+"px");
+  	ctx.mozImageSmoothEnabled = false;
+  	ctx.msImageSmoothEnabled = false;
+  	ctx.imageSmoothingEnabled = false;
+  	ctx.font = '30px Arial';
+  }
+  resizeCanvas();
   let Player = function(initPack){
   	let self = {};
   	self.id = initPack.id;
@@ -26,7 +42,7 @@
   	Player.list[self.id] = self;
   	self.draw = function(){
   		let hpWidth = 60 * self.hp / self.hpMax;
-  		ctx.fillStyle = 'black';
+  		ctx.fillStyle = 'red';
   		let x = self.x - Player.list[selfId].x + WIDTH/2;
   		let y = self.y - Player.list[selfId].y + HEIGHT/2;
   		ctx.fillRect(x - hpWidth/2, y -40, hpWidth, 4);
@@ -75,7 +91,7 @@ let img = {};
   let drawScore = function(){
   	ctx.fillStyle = 'black';
   	if(selfId){
-  		 ctx.fillText(Player.list[selfId].score+"",0, 30);
+  		 ctx.fillText(Player.list[selfId].score+"",10, 60);
   	}
   }
 
@@ -139,7 +155,8 @@ socket.on('init', function (data) {
   }
 
   setInterval(function (data) {
-    ctx.clearRect(0,0,500,500);
+    ctx.clearRect(0,0,WIDTH, HEIGHT);
+      	chatText.scrollTop = chatText.scrollHeight;
     drawMap();
     drawScore();
     for(let i in Player.list)
