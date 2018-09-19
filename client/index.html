@@ -42,18 +42,18 @@
   	Player.list[self.id] = self;
   	self.draw = function(){
   		let hpWidth = 60 * self.hp / self.hpMax;
-  		ctx.fillStyle = 'red';
   		let x = self.x - Player.list[selfId].x + WIDTH/2;
   		let y = self.y - Player.list[selfId].y + HEIGHT/2;
-  		ctx.fillRect(x - hpWidth/2, y -40, hpWidth, 4);
-  		ctx.fillText(self.number, x, y);
+  		//ctx.fillText(self.number, x, y);
   		ctx.beginPath();
-  		ctx.arc(x, y, 30, 0, 2 * Math.PI, false);
+  		ctx.arc(x, y, 30 *(1 + self.score/4.2), 0, 2 * Math.PI, false);
   		ctx.fillStyle = 'green';
   		ctx.fill();
   		ctx.lineWidth = 5;
   		ctx.strokeStyle = '#003300';
   		ctx.stroke();
+  		  		ctx.fillStyle = 'red';
+  		ctx.fillRect(x - hpWidth/2, y -40, hpWidth, 4);
   	}
   	return self;
   }

@@ -174,13 +174,15 @@ let Bullet = function(angle, parent){
 
 		for (let i in Player.list){
 			let p = Player.list[i];
-			if(self.getDistance(p) < 25 && self.parent !== p.id){
+			let isColliding = self.getDistance(p) < 25*(1+(p.score/4)) && self.parent !== p.id;
+			if(isColliding){
 				p.hp -= 10;
 				let shooter = Player.list[self.parent];
 				if(p.hp <= 0){
 					p.hp = p.hpMax;
 					p.x = Math.random() *500;
 					p.y = Math.random() *500;
+					p.score = 0;
 
 					if(shooter){
 					shooter.score += 1;
