@@ -1,4 +1,4 @@
-const DEBUG = true;
+const DEBUG = false;
 let express = require('express');
 let app = express();
 let server = require('http').Server(app);
