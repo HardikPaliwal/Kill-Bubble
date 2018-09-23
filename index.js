@@ -3,10 +3,18 @@ let express = require('express');
 let app = express();
 let server = require('http').Server(app);
 let io = require('socket.io') (server,{});
+let mongojs = require("mongojs");
+if(DEBUG){
+var db = mongojs('localhost:27017/KillBubble', ['account', 'progress']);
+}
+else{
+var db = mongojs(process.env.MONGODB_URI, ['account', 'progress']);
+}
+
 app.get('/', function(req, res){
 	res.sendFile(__dirname + '/client/index.html');
 });
-app.use('client', express.static(__dirname+ '/client'));
+app.use(express.static('client'));
 
 server.listen(process.env.PORT || 2000);
 
@@ -32,9 +40,10 @@ let Entity = function(){
 	return self;
 }
 
-let Player = function(id){
+let Player = function(id, username){
 	let self = Entity();
 	self.id = id;
+	self.username = username;
 	self.number = "" + Math.floor(10* Math.random());
 	self.pressingRight = false;
 	self.pressingLeft = false;
@@ -112,13 +121,19 @@ Player.disconnect = function(socket){
 }
 Player.getAllInitPack = function(){
     var players = [];
-    for(var i in Player.list)
+    for(var i in Player.list){
+    	try{
         players.push(Player.list[i].getInitPack());
+    }
+    catch(err){
+    	console.log(Player.list[i]);
+    }
+    }
     return players;
 }
 
-Player.onConnect = function (socket){
-	let player = Player(socket.id);
+Player.onConnect = function (socket, username){
+	let player = Player(socket.id, username);
 	socket.on('keyPress',function(data){
         if(data.inputId === 'left')
             player.pressingLeft = data.state;
@@ -192,8 +207,7 @@ let Bullet = function(angle, parent){
 			}
 		}
 	}
-	self.getInitPack = function(){
-		return{
+	self.getInitPack = function(){return{
 		id:self.id,
 		x:self.x,
 		y:self.y
@@ -232,12 +246,56 @@ Bullet.getAllInitPack = function(){
         bullets.push(Bullet.list[i].getInitPack());
     return bullets;
 }
+let signInResult= function (data, cb){
+	db.account.find({username: data.userName, password:data.password}, function(err, res){
+		if(err){
+			cb(false, "An internal Error Occured");
+		}
+		else{
+			if( res.length > 0){
+				cb(true, "Sign in Successful");
+			}
+			else{
+				cb(false, "Incorrect Username or Password");
+			}
+		}
+	})
+}
+let signUpResult = function (data, cb){
+	db.account.insert({username: data.userName, password:data.password}, function(err){
+		if(err){
+			cb(false, "An internal Error Occured");
+		}
+		else{
+			cb(true, "Sign up Successful");
+		}
+	})
+}
 const REFRESH_TIME = 40;
 let SOCKET_LIST = {};
 io.on('connection', function(socket){
-	socket.id = Math.random();
+	socket.id = Math.random()
 	SOCKET_LIST[socket.id] = socket;
-	Player.onConnect(socket)
+	socket.on('signIn', function(data){
+		signInResult(data, function(res, code){
+			if(res){
+				socket.emit('signInResponse', {success:true, response: code});
+				Player.onConnect(socket, data.userName);
+			}
+			else{
+				socket.emit('signInResponse', {success:false, response: code});
+		}})	
+	});
+	socket.on('signUp', function(data){
+		signUpResult(data, function(res, code){
+			if(res){
+				socket.emit('signInResponse', {success:true, response: code});
+				Player.onConnect(socket, data.userName);
+			}
+			else{
+				socket.emit('signInResponse', {success:false, response:code});
+		}})	
+	});
 	socket.on('disconnect', function(){
 		Player.disconnect(socket);
 		removePack.player.push(socket.id);
@@ -256,7 +314,7 @@ io.on('connection', function(socket){
 				return;
 			}
 		}
-		let playerName = ("" + socket.id).slice(2, 7);
+		let playerName = (Player.list[socket.id].username);
 		for(let i in SOCKET_LIST){
 			SOCKET_LIST[i].emit('addToChat', playerName + ': ' + data);
 		}
