@@ -1,4 +1,4 @@
-const DEBUG = true;
+const DEBUG = false;
 let express = require('express');
 let app = express();
 let server = require('http').Server(app);
@@ -8,6 +8,7 @@ if(DEBUG){
 var db = mongojs('localhost:27017/KillBubble', ['account', 'progress']);
 }
 else{
+console.log(process.env.MONGODB_URI);
 var db = mongojs(process.env.MONGODB_URI, ['account', 'progress']);
 }
 
