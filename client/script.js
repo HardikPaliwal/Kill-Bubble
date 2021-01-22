@@ -23,13 +23,12 @@ $('.message a').click(function(){
 
 
 signInButton.onclick = function (){
-  socket.emit('signIn', {userName:usernameSign.value, password:passwordSign.value});
+  socket.emit('signIn', {userName:usernameSign.value});
 }
-createButton.onclick = function (){
-  socket.emit('signUp', {userName:usernameCreate.value, password:passwordCreate.value});
-}
+// createButton.onclick = function (){
+//   socket.emit('signUp', {userName:usernameCreate.value, password:passwordCreate.value});
+// }
 socket.on('signInResponse', function(data){
-  console.log(data);
   if(data.success){
    signDiv.style.display = 'none';
     gameDiv.style.display = 'inline-block';

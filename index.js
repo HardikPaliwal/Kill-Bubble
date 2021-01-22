@@ -3,14 +3,7 @@ let express = require('express');
 let app = express();
 let server = require('http').Server(app);
 let io = require('socket.io') (server,{});
-let mongojs = require("mongojs");
-if(DEBUG){
-var db = mongojs('localhost:27017/KillBubble', ['account', 'progress']);
-}
-else{
-console.log(process.env.MONGODB_URI);
-var db = mongojs(process.env.MONGODB_URI, ['account', 'progress']);
-}
+
 
 app.get('/', function(req, res){
 	res.sendFile(__dirname + '/client/index.html');
@@ -247,56 +240,54 @@ Bullet.getAllInitPack = function(){
         bullets.push(Bullet.list[i].getInitPack());
     return bullets;
 }
-let signInResult= function (data, cb){
-	db.account.find({username: data.userName, password:data.password}, function(err, res){
-		if(err){
-			cb(false, "An internal Error Occured");
-		}
-		else{
-			if( res.length > 0){
-				cb(true, "Sign in Successful");
-			}
-			else{
-				cb(false, "Incorrect Username or Password");
-			}
-		}
-	})
-}
-let signUpResult = function (data, cb){
-	db.account.insert({username: data.userName, password:data.password}, function(err){
-		if(err){
-			cb(false, "An internal Error Occured");
-		}
-		else{
-			cb(true, "Sign up Successful");
-		}
-	})
-}
+// let signInResult= function (data, cb){
+// 	db.account.find({username: data.userName, password:data.password}, function(err, res){
+// 		if(data.userName.length== 0){
+// 			cb(false, "Username not long enough");
+// 		}
+// 		else{
+// 			// if( res.length > 0){
+// 				cb(true, "Sign in Successful");
+// 			// }
+// 			// else{
+// 			// 	cb(false, "Incorrect Username or Password");
+// 			// }
+// 		}
+// 	})
+// }
+// let signUpResult = function (data, cb){
+// 	db.account.insert({username: data.userName, password:data.password}, function(err){
+// 		if(err){
+// 			cb(false, "An internal Error Occured");
+// 		}
+// 		else{
+// 			cb(true, "Sign up Successful");
+// 		}
+// 	})
+// }
 const REFRESH_TIME = 40;
 let SOCKET_LIST = {};
 io.on('connection', function(socket){
 	socket.id = Math.random()
 	SOCKET_LIST[socket.id] = socket;
 	socket.on('signIn', function(data){
-		signInResult(data, function(res, code){
-			if(res){
-				socket.emit('signInResponse', {success:true, response: code});
-				Player.onConnect(socket, data.userName);
-			}
-			else{
-				socket.emit('signInResponse', {success:false, response: code});
-		}})	
+		if(data.userName.length!= 0){
+			socket.emit('signInResponse', {success:true, response: "Sign in Successful"});
+			Player.onConnect(socket, data.userName);
+		}
+		else
+			socket.emit('signInResponse', {success:false, response: "Username not long enough"});
 	});
-	socket.on('signUp', function(data){
-		signUpResult(data, function(res, code){
-			if(res){
-				socket.emit('signInResponse', {success:true, response: code});
-				Player.onConnect(socket, data.userName);
-			}
-			else{
-				socket.emit('signInResponse', {success:false, response:code});
-		}})	
-	});
+	// socket.on('signUp', function(data){
+	// 	signUpResult(data, function(res, code){
+	// 		if(res){
+	// 			socket.emit('signInResponse', {success:true, response: code});
+	// 			Player.onConnect(socket, data.userName);
+	// 		}
+	// 		else{
+	// 			socket.emit('signInResponse', {success:false, response:code});
+	// 	}})	
+	// });
 	socket.on('disconnect', function(){
 		Player.disconnect(socket);
 		removePack.player.push(socket.id);
